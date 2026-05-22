@@ -1,0 +1,18 @@
+{
+  "name": "Control Finanzas Personales",
+  "short_name": "Control Finanzas",
+  "description": "App offline para seguimiento de ingresos, gastos y descuadres reales mensuales.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#1F3864",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBmaWxsPSIjMUYzODY0Ij48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIvPjxwYXRoIGQ9Ik0yNTYgMTI4Yy03MS4xIDAtMTI4IDU2LjktMTI4IDEyOHM1Ni45IDEyOCAxMjggMTI4IDEyOC01Ni45IDEyOC0xMjhTMzI3LjEgMTI4IDI1NiAxMjh6bTAgMjE2Yy00OC41IDAtODgtMzkuNS04OC04OHMzOS41LTg4IDg4LTg4IDg4IDM5LjUgODggODgtMzkuNSA4OC04OCA4OHoiIGZpbGw9IiNGRkRFNzkiLz48L3N2Zz4=",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
