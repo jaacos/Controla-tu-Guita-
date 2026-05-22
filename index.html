@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control Finanzas</title>
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1F3864">
+    <link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiBmaWxsPSIjMUYzODY0Ij48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjExMiIvPjxwYXRoIGQ9Ik0yNTYgMTI4Yy03MS4xIDAtMTI4IDU2LjktMTI4IDEyOHM1Ni45IDEyOCAxMjggMTI4IDEyOC01Ni45IDEyOC0xMjhTMzI3LjEgMTI4IDI1NiAxMjh6bTAgMjE2Yy00OC41IDAtODgtMzkuNS04OC04OHMzOS41LTg4IDg4LTg4IDg4IDM5LjUgODggODgtMzkuNSA4OC04OCA4OHoiIGZpbGw9IiNGRkRFNzkiLz48L3N2Zz4=">
+    
+    <style>
+        :root {
+            --primary: #1F3864;
+            --secondary: #2a4c8a;
+            --bg: #f4f6f9;
+            --editable: #ffffe0;
+            --text: #333;
+            --border: #ddd;
+            --positive: #28a745;
+            --negative: #dc3545;
+            --warning: #ffc107;
+            --white: #fff;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; }
+
+        body { background-color: var(--bg); color: var(--text); padding-bottom: 80px; }
+
+        header { background-color: var(--primary); color: var(--white); padding: 1rem; text-align: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        header h1 { font-size: 1.2rem; margin-bottom: 0.5rem; }
+        
+        .nav-buttons { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; }
+        button { background-color: var(--secondary); color: var(--white); border: none; padding: 0.5rem 1rem; border-radius: 4px; font-weight: bold; cursor: pointer; }
+        button:active { background-color: var(--primary); }
+        button.active-tab { background-color: var(--warning); color: var(--text); }
+        
+        .container { max-width: 800px; margin: 0 auto; padding: 1rem; }
+        
+        .view { display: none; }
+        .view.active { display: block; }
+
+        .card { background: var(--white); border-radius: 8px; padding: 1rem; margin-bottom: 1rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+        .card h2 { color: var(--primary); font-size: 1.1rem; border-bottom: 2px solid var(--primary); padding-bottom: 0.5rem; margin-bottom: 1rem; }
+
+        .form-group { display: flex; justify-content: space-between; align-items: center; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+        .form-group label { flex: 1; font-size: 0.9rem; padding-right: 1rem; }
+        .form-group input { width: 100px; text-align: right; padding: 0.5rem; border: 1px solid #ccc; border-radius: 4px; background-color: var(--editable); font-size: 1rem; }
+        .form-group input:focus { outline: 2px solid var(--primary); }
+
+        .total-row { display: flex; justify-content: space-between; padding: 1rem 0; font-weight: bold; font-size: 1.1rem; }
+        .descuadre-row { margin-top: 1rem; padding: 1rem; border-radius: 8px; text-align: center; font-weight: bold; font-size: 1.2rem; }
+        .positive { background-color: #e6f4ea; color: var(--positive); }
+        .negative { background-color: #fce8e6; color: var(--negative); }
+        .neutral { background-color: #f1f3f4; color: var(--text); }
+
+        .alert { color: var(--negative); font-size: 0.85rem; margin-top: 0.5rem; display: block; }
+
+        select.month-selector { width: 100%; padding: 0.8rem; font-size: 1.1rem; margin-bottom: 1rem; border-radius: 4px; border: 1px solid var(--primary); background-color: var(--white); font-weight: bold; color: var(--primary); }
+
+        /* Estilos vista anual */
+        .table-responsive { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        table { width: 100%; border-collapse: collapse; min-width: 800px; font-size: 0.85rem; background: var(--white); }
+        th, td { border: 1px solid var(--border); padding: 0.5rem; text-align: right; }
+        th { background-color: var(--primary); color: var(--white); position: sticky; top: 0; }
+        td:first-child, th:first-child { text-align: left; position: sticky; left: 0; background: var(--white); font-weight: bold; z-index: 10; }
+        th:first-child { background-color: var(--primary); z-index: 11; }
+        .row-total { background-color: #f0f0f0; font-weight: bold; }
+
+        .actions { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.5rem; margin-top: 2rem; }
+        .btn-danger { background-color: var(--negative); }
+
+        /* Utilidades */
+        .hidden { display: none !important; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>Control Finanzas</h1>
+    <div class="nav-buttons">
+        <button id="btn-mensual" class="active-tab" onclick="switchView('mensual')">Mes a Mes</button>
+        <button id="btn-anual" onclick="switchView('anual')">Resumen Anual</button>
+    </div>
+</header>
+
+<div class="container">
+    <!-- VISTA MENSUAL -->
+    <div id="view-mensual" class="view active">
+        <select id="month-select" class="month-selector" onchange="renderMonth()"></select>
+
+        <div class="card">
+            <h2>Saldos Bancarios Reales</h2>
+            <p style="font-size: 0.8rem; color: #666; margin-bottom: 1rem;">La única verdad. Rellénalos para calcular tu ahorro real.</p>
+            <div class="form-group">
+                <label>Saldo banco al inicio del mes</label>
+                <input type="number" id="saldo-inicio" step="0.01" onchange="saveData()">
+            </div>
+            <div class="form-group">
+                <label>Saldo banco al final del mes</label>
+                <input type="number" id="saldo-fin" step="0.01" onchange="saveData()">
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Ingresos</h2>
+            <div id="ingresos-container"></div>
+            <div class="total-row">
+                <span>TOTAL INGRESOS</span>
+                <span id="total-ingresos">0,00 €</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Gastos</h2>
+            <div id="gastos-container"></div>
+            <div class="total-row">
+                <span>TOTAL GASTOS</span>
+                <span id="total-gastos">0,00 €</span>
+            </div>
+        </div>
+
+        <div class="card">
+            <h2>Resultados del Mes</h2>
+            <div class="form-group" style="border:none">
+                <label>Ahorro Teórico (Ingresos - Gastos)</label>
+                <span id="ahorro-teorico" style="font-weight:bold">0,00 €</span>
+            </div>
+            <div class="form-group" style="border:none">
+                <label>Ahorro Real (Saldo Fin - Saldo Inicio)</label>
+                <span id="ahorro-real" style="font-weight:bold">0,00 €</span>
+            </div>
+            
+            <div id="descuadre-box" class="descuadre-row neutral">
+                Descuadre: <span id="descuadre-val">0,00 €</span>
+                <span id="descuadre-alert" class="alert hidden">⚠️ Hay gastos que no estás registrando.</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- VISTA ANUAL -->
+    <div id="view-anual" class="view">
+        <div class="card table-responsive">
+            <h2>Resumen Anual</h2>
+            <table id="annual-table">
+                <!-- Se rellena por JS -->
+            </table>
+        </div>
+    </div>
+
+    <!-- ACCIONES GLOBALES -->
+    <div class="actions">
+        <button onclick="exportCSV()">Exportar CSV</button>
+        <button onclick="document.getElementById('file-import').click()">Importar CSV</button>
+        <input type="file" id="file-import" accept=".csv" class="hidden" onchange="importCSV(event)">
+        <button class="btn-danger" onclick="clearData()">Borrar Todo</button>
+    </div>
+</div>
+
+<script>
+    // --- CONFIGURACIÓN Y ESTADO ---
+    const meses = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+    const ingresosCat = ["Nómina titular 1", "Nómina titular 2", "Guardias", "Formación", "Otros ingresos"];
+    const gastosCat = [
+        "Vivienda (hipoteca/alquiler)", "Caravana (cuota préstamo)", "Caravana (garaje + seguro + mantenimiento)",
+        "Préstamo familiar", "Suministros (luz, agua, gas, internet)", "Alimentación/supermercado",
+        "Colegio/gastos de la niña", "Coche SLK", "Coche Clase B", "Moto Z750", "Moto Birdi",
+        "Combustible (todos los vehículos)", "Seguros", "Impuestos (IBI, basuras, ITV)",
+        "Suscripciones", "Comidas fuera/ocio", "Compras varias/ropa/regalos",
+        "Gastos hormiga", "Imprevistos/reparaciones", "Otros"
+    ];
+
+    let currentMonth = 0; // 0 = Enero
+    let appData = {};
+
+    // --- INICIALIZACIÓN ---
+    function init() {
+        const currentRealMonth = new Date().getMonth();
+        currentMonth = currentRealMonth;
+        
+        loadData();
+        buildMonthSelector();
+        buildInputs();
+        renderMonth();
+
+        // Registrar Service Worker para PWA offline
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js')
+            .then(() => console.log('Service Worker registrado'))
+            .catch(err => console.log('Error en Service Worker', err));
+        }
+    }
+
+    function loadData() {
+        const stored = localStorage.getItem('finanzasPWA_Data');
+        if (stored) {
+            appData = JSON.parse(stored);
+        } else {
+            // Estructura inicial
+            meses.forEach((m, i) => {
+                appData[i] = {
+                    saldos: { inicio: '', fin: '' },
+                    ingresos: {},
+                    gastos: {}
+                };
+                ingresosCat.forEach(c => appData[i].ingresos[c] = '');
+                gastosCat.forEach(c => appData[i].gastos[c] = '');
+            });
+        }
+    }
+
+    // --- NAVEGACIÓN ---
+    function switchView(viewName) {
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        document.querySelectorAll('.nav-buttons button').forEach(b => b.classList.remove('active-tab'));
+        
+        document.getElementById(`view-${viewName}`).classList.add('active');
+        document.getElementById(`btn-${viewName}`).classList.add('active-tab');
+
+        if (viewName === 'anual') {
+            renderAnnual();
+        }
+    }
+
+    // --- VISTA MENSUAL ---
+    function buildMonthSelector() {
+        const sel = document.getElementById('month-select');
+        sel.innerHTML = '';
+        meses.forEach((m, i) => {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = m;
+            if (i === currentMonth) opt.selected = true;
+            sel.appendChild(opt);
+        });
+    }
+
+    function buildInputs() {
+        const ingCont = document.getElementById('ingresos-container');
+        ingCont.innerHTML = ingresosCat.map((cat, idx) => `
+            <div class="form-group">
+                <label>${cat}</label>
+                <input type="number" step="0.01" data-type="ingreso" data-cat="${idx}" oninput="saveData()">
+            </div>
+        `).join('');
+
+        const gasCont = document.getElementById('gastos-container');
+        gasCont.innerHTML = gastosCat.map((cat, idx) => `
+            <div class="form-group">
+                <label>${cat}</label>
+                <input type="number" step="0.01" data-type="gasto" data-cat="${idx}" oninput="saveData()">
+            </div>
+        `).join('');
+    }
+
+    function renderMonth() {
+        currentMonth = parseInt(document.getElementById('month-select').value);
+        const data = appData[currentMonth];
+
+        document.getElementById('saldo-inicio').value = data.saldos.inicio;
+        document.getElementById('saldo-fin').value = data.saldos.fin;
+
+        document.querySelectorAll('input[data-type="ingreso"]').forEach(inp => {
+            const cat = ingresosCat[inp.dataset.cat];
+            inp.value = data.ingresos[cat] || '';
+        });
+
+        document.querySelectorAll('input[data-type="gasto"]').forEach(inp => {
+            const cat = gastosCat[inp.dataset.cat];
+            inp.value = data.gastos[cat] || '';
+        });
+
+        calculateTotals();
+    }
+
+    function saveData() {
+        const data = appData[currentMonth];
+        
+        data.saldos.inicio = document.getElementById('saldo-inicio').value;
+        data.saldos.fin = document.getElementById('saldo-fin').value;
+
+        document.querySelectorAll('input[data-type="ingreso"]').forEach(inp => {
+            const cat = ingresosCat[inp.dataset.cat];
+            data.ingresos[cat] = inp.value;
+        });
+
+        document.querySelectorAll('input[data-type="gasto"]').forEach(inp => {
+            const cat = gastosCat[inp.dataset.cat];
+            data.gastos[cat] = inp.value;
+        });
+
+        localStorage.setItem('finanzasPWA_Data', JSON.stringify(appData));
+        calculateTotals();
+    }
+
+    function calculateTotals() {
+        const data = appData[currentMonth];
+        
+        let tIngresos = 0;
+        let tGastos = 0;
+
+        ingresosCat.forEach(c => { tIngresos += parseFloat(data.ingresos[c]) || 0; });
+        gastosCat.forEach(c => { tGastos += parseFloat(data.gastos[c]) || 0; });
+
+        const ahorroTeorico = tIngresos - tGastos;
+        
+        const saldoIni = parseFloat(data.saldos.inicio) || 0;
+        const saldoFin = parseFloat(data.saldos.fin) || 0;
+        // Solo calcular ahorro real si ambos saldos están introducidos
+        let ahorroReal = 0;
+        let descuadre = 0;
+        let showReal = (data.saldos.inicio !== '' && data.saldos.fin !== '');
+
+        if (showReal) {
+            ahorroReal = saldoFin - saldoIni;
+            descuadre = ahorroReal - ahorroTeorico;
+        }
+
+        // Formateo
+        const fmt = (num) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(num);
+
+        document.getElementById('total-ingresos').innerText = fmt(tIngresos);
+        document.getElementById('total-gastos').innerText = fmt(tGastos);
+        document.getElementById('ahorro-teorico').innerText = fmt(ahorroTeorico);
+        
+        document.getElementById('ahorro-real').innerText = showReal ? fmt(ahorroReal) : 'Faltan saldos';
+        
+        const desBox = document.getElementById('descuadre-box');
+        const desVal = document.getElementById('descuadre-val');
+        const desAlert = document.getElementById('descuadre-alert');
+
+        if (!showReal) {
+            desVal.innerText = '-';
+            desBox.className = 'descuadre-row neutral';
+            desAlert.classList.add('hidden');
+        } else {
+            desVal.innerText = fmt(descuadre);
+            desBox.className = 'descuadre-row ' + (descuadre >= 0 ? 'positive' : 'negative');
+            
+            // Mostrar alerta si el descuadre negativo es mayor de 50€ (margen de error)
+            if (descuadre < -50) {
+                desAlert.classList.remove('hidden');
+            } else {
+                desAlert.classList.add('hidden');
+            }
+        }
+    }
+
+    // --- VISTA ANUAL ---
+    function renderAnnual() {
+        const tbl = document.getElementById('annual-table');
+        const fmt = (num) => new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR' }).format(num);
+        
+        let html = `<thead><tr><th>Concepto</th>${meses.map(m => `<th>${m.substring(0,3)}</th>`).join('')}<th>MEDIA</th></tr></thead><tbody>`;
+
+        // Filas Ingresos
+        html += `<tr><td colspan="14" style="background:#f4f6f9;font-weight:bold;color:var(--primary);text-align:left;">INGRESOS</td></tr>`;
+        let sumIngresosMensual = Array(12).fill(0);
+        
+        ingresosCat.forEach(cat => {
+            html += `<tr><td>${cat}</td>`;
+            let sumaAnual = 0;
+            let mesesActivos = 0;
+            for(let i=0; i<12; i++) {
+                let val = parseFloat(appData[i].ingresos[cat]) || 0;
+                sumaAnual += val;
+                sumIngresosMensual[i] += val;
+                if(appData[i].ingresos[cat] !== '') mesesActivos++;
+                html += `<td>${val === 0 ? '-' : fmt(val)}</td>`;
+            }
+            let media = mesesActivos > 0 ? sumaAnual / mesesActivos : 0;
+            html += `<td><strong>${fmt(media)}</strong></td></tr>`;
+        });
+
+        // Total Ingresos
+        html += `<tr class="row-total"><td>TOTAL INGRESOS</td>`;
+        let totalMediaIng = 0;
+        let mesesActivosIng = 0;
+        for(let i=0; i<12; i++) {
+            html += `<td>${fmt(sumIngresosMensual[i])}</td>`;
+            totalMediaIng += sumIngresosMensual[i];
+            if(sumIngresosMensual[i] > 0) mesesActivosIng++;
+        }
+        html += `<td><strong>${fmt(mesesActivosIng > 0 ? totalMediaIng/mesesActivosIng : 0)}</strong></td></tr>`;
+
+        // Filas Gastos
+        html += `<tr><td colspan="14" style="background:#f4f6f9;font-weight:bold;color:var(--primary);text-align:left;">GASTOS</td></tr>`;
+        let sumGastosMensual = Array(12).fill(0);
+        
+        gastosCat.forEach(cat => {
+            html += `<tr><td>${cat}</td>`;
+            let sumaAnual = 0;
+            let mesesActivos = 0;
+            for(let i=0; i<12; i++) {
+                let val = parseFloat(appData[i].gastos[cat]) || 0;
+                sumaAnual += val;
+                sumGastosMensual[i] += val;
+                if(appData[i].gastos[cat] !== '') mesesActivos++;
+                html += `<td>${val === 0 ? '-' : fmt(val)}</td>`;
+            }
+            let media = mesesActivos > 0 ? sumaAnual / mesesActivos : 0;
+            html += `<td><strong>${fmt(media)}</strong></td></tr>`;
+        });
+
+        // Total Gastos
+        html += `<tr class="row-total"><td>TOTAL GASTOS</td>`;
+        let totalMediaGas = 0;
+        let mesesActivosGas = 0;
+        for(let i=0; i<12; i++) {
+            html += `<td>${fmt(sumGastosMensual[i])}</td>`;
+            totalMediaGas += sumGastosMensual[i];
+            if(sumGastosMensual[i] > 0) mesesActivosGas++;
+        }
+        html += `<td><strong>${fmt(mesesActivosGas > 0 ? totalMediaGas/mesesActivosGas : 0)}</strong></td></tr>`;
+
+        // Resultados finales
+        html += `<tr><td colspan="14" style="background:#f4f6f9;font-weight:bold;color:var(--primary);text-align:left;">RESULTADOS</td></tr>`;
+        html += `<tr class="row-total"><td>AHORRO TEÓRICO</td>`;
+        for(let i=0; i<12; i++) { html += `<td>${fmt(sumIngresosMensual[i] - sumGastosMensual[i])}</td>`; }
+        html += `<td></td></tr>`;
+
+        html += `<tr class="row-total"><td>AHORRO REAL</td>`;
+        for(let i=0; i<12; i++) { 
+            let ini = parseFloat(appData[i].saldos.inicio);
+            let fin = parseFloat(appData[i].saldos.fin);
+            let real = (!isNaN(ini) && !isNaN(fin)) ? fin - ini : 0;
+            html += `<td>${(!isNaN(ini) && !isNaN(fin)) ? fmt(real) : '-'}</td>`; 
+        }
+        html += `<td></td></tr>`;
+
+        html += `</tbody>`;
+        tbl.innerHTML = html;
+    }
+
+    // --- ACCIONES DE DATOS ---
+    function exportCSV() {
+        let csvContent = "data:text/csv;charset=utf-8,Mes,Tipo,Categoria,Valor\n";
+        
+        for (let i = 0; i < 12; i++) {
+            let m = meses[i];
+            let d = appData[i];
+            
+            csvContent += `${m},Saldos,Inicio,${d.saldos.inicio || 0}\n`;
+            csvContent += `${m},Saldos,Fin,${d.saldos.fin || 0}\n`;
+            
+            ingresosCat.forEach(cat => {
+                if(d.ingresos[cat]) csvContent += `${m},Ingreso,"${cat}",${d.ingresos[cat]}\n`;
+            });
+            gastosCat.forEach(cat => {
+                if(d.gastos[cat]) csvContent += `${m},Gasto,"${cat}",${d.gastos[cat]}\n`;
+            });
+        }
+
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", `Finanzas_Export_${new Date().toISOString().split('T')[0]}.csv`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function importCSV(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            const rows = text.split('\n');
+            
+            // Reset state
+            localStorage.removeItem('finanzasPWA_Data');
+            loadData();
+
+            rows.slice(1).forEach(row => {
+                if(!row.trim()) return;
+                // Parse CSV simple (no maneja comas dentro de strings complejos más allá de las comillas dobles básicas)
+                const cols = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/);
+                if(cols.length < 4) return;
+                
+                const mIdx = meses.indexOf(cols[0]);
+                if(mIdx === -1) return;
+                
+                const tipo = cols[1];
+                const cat = cols[2].replace(/"/g, '');
+                const val = cols[3].trim();
+
+                if(tipo === 'Saldos') {
+                    if(cat === 'Inicio') appData[mIdx].saldos.inicio = val === '0' ? '' : val;
+                    if(cat === 'Fin') appData[mIdx].saldos.fin = val === '0' ? '' : val;
+                } else if(tipo === 'Ingreso') {
+                    if(appData[mIdx].ingresos[cat] !== undefined) appData[mIdx].ingresos[cat] = val;
+                } else if(tipo === 'Gasto') {
+                    if(appData[mIdx].gastos[cat] !== undefined) appData[mIdx].gastos[cat] = val;
+                }
+            });
+
+            localStorage.setItem('finanzasPWA_Data', JSON.stringify(appData));
+            renderMonth();
+            if(document.getElementById('view-anual').classList.contains('active')) renderAnnual();
+            alert("Datos importados correctamente.");
+        };
+        reader.readAsText(file);
+    }
+
+    function clearData() {
+        if(confirm("¿Estás MUY seguro de que quieres borrar todos los datos guardados en este dispositivo? Esta acción no se puede deshacer si no has exportado antes.")) {
+            localStorage.removeItem('finanzasPWA_Data');
+            loadData();
+            renderMonth();
+            alert("Datos borrados.");
+        }
+    }
+
+    window.onload = init;
+</script>
+
+</body>
+</html>
